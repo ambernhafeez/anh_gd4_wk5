@@ -1,9 +1,6 @@
 using System.Collections;
-using System.Numerics;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
@@ -12,8 +9,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Transform focalPoint;
     private UnityEngine.Vector3 startingPos;
     public bool hasRepelPowerup = false;
+    public bool hasBlastPowerup = false;
+    public bool hasBouncePowerup = false;
     [SerializeField] private float powerupStrength = 10;
     public GameObject powerupIndicator;
+    public GameObject blastPowerupIndicator;
+    public GameObject bouncePowerupIndicator;
+    public GameObject projectile;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -28,7 +30,7 @@ public class PlayerController : MonoBehaviour
         // want movement in forward direction relative to the camera
         float verticalInput = Input.GetAxis("Vertical");
         float horizontalInput = Input.GetAxis("Horizontal");
-        UnityEngine.Vector2 moveDir = new UnityEngine.Vector2(horizontalInput, verticalInput).normalized;
+        Vector2 moveDir = new Vector2(horizontalInput, verticalInput).normalized;
 
         rb.AddForce((focalPoint.forward * moveDir.y + focalPoint.right * moveDir.x) * moveSpeed);
     
@@ -43,9 +45,13 @@ public class PlayerController : MonoBehaviour
         }
 
         // powerup indicator position with offset
-        powerupIndicator.transform.position = transform.position + new UnityEngine.Vector3(0,0,0);
+        powerupIndicator.transform.position = transform.position + new Vector3(0,0,0);
+        blastPowerupIndicator.transform.position = transform.position + new Vector3(0,0,0);
+        bouncePowerupIndicator.transform.position = transform.position + new Vector3(0,1.4f,0);
 
         powerupIndicator.gameObject.SetActive(hasRepelPowerup);
+        blastPowerupIndicator.gameObject.SetActive(hasBlastPowerup); 
+        bouncePowerupIndicator.gameObject.SetActive(hasBouncePowerup);
     }
 
     // function for reloading the scene 
@@ -61,7 +67,22 @@ public class PlayerController : MonoBehaviour
         if (collision.CompareTag("Powerup_Repel")) {
             hasRepelPowerup = true;
             Destroy(collision.gameObject);
-            StartCoroutine(PowerUpCountdownRoutine());
+            StartCoroutine(RepelPowerUpCountdownRoutine());
+        }
+
+        if (collision.CompareTag("Powerup_Blast"))
+        {
+            hasBlastPowerup = true;
+            Destroy(collision.gameObject);
+            StartCoroutine(BlastRoutine());
+        }
+
+        if (collision.CompareTag("Powerup_Bounce"))
+        {
+            hasBouncePowerup = true;
+            Destroy(collision.gameObject);
+            StartCoroutine(BouncePowerUpCountdownRoutine());
+            
         }
     }
 
@@ -74,12 +95,36 @@ public class PlayerController : MonoBehaviour
 
             Debug.Log("Player collided with " + collision.gameObject.name + " with powerup set to " + hasRepelPowerup);
             enemyRigidbody.AddForce(awayFromPlayer * powerupStrength, ForceMode.Impulse);
-        }
+        } 
     }
 
-    private IEnumerator PowerUpCountdownRoutine()
+    private IEnumerator RepelPowerUpCountdownRoutine()
     {
-        yield return new WaitForSeconds(7);
+        yield return new WaitForSeconds(10);
         hasRepelPowerup = false;
     }
+
+    private IEnumerator BlastRoutine()
+    {
+        // blast every other second 6 times
+        for (int i = 0; i < 6; i++)
+        {
+            // blast every 45 degrees
+            for (int spawnAngle = 0; spawnAngle < 360; spawnAngle += 45)
+            {
+                Instantiate(projectile, transform.position, Quaternion.Euler(0,spawnAngle,0));
+            }
+
+            yield return new WaitForSeconds(1);
+        }
+
+        hasBlastPowerup = false;
+    }
+
+    private IEnumerator BouncePowerUpCountdownRoutine()
+    {
+        yield return new WaitForSeconds(1);
+        hasBouncePowerup = false;
+    }
+
 }

@@ -7,6 +7,10 @@ TagManager:
   - Powerup_Repel
   - Enemy
   - Indicator_Repel
+  - Powerup_Blast
+  - Powerup_Bounce
+  - Indicator_Blast
+  - Indicator_Bounce
   layers:
   - Default
   - TransparentFX

@@ -3,20 +3,43 @@ using UnityEngine;
 
 public class SpawnManager : MonoBehaviour
 {
-    public GameObject enemyPrefab;
+    public GameObject[] enemyPrefab;
     public float spawnRange = 9;
     public int enemyCount;
+    public int waveNumber = 1;
+    public GameObject[] powerupPrefabs;
+    private PlayerController playerControllerScript;
+    public GameObject mushroom;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        SpawnEnemyWave(5);
+        SpawnEnemyWave(waveNumber);
+        Instantiate(powerupPrefabs[0], GenerateSpawnPosition(), powerupPrefabs[0].transform.rotation);
+        Instantiate(powerupPrefabs[1], GenerateSpawnPosition(), powerupPrefabs[1].transform.rotation);
+        Instantiate(powerupPrefabs[2], GenerateSpawnPosition(), powerupPrefabs[2].transform.rotation);
+        playerControllerScript = GameObject.Find("Player").GetComponent<PlayerController>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        enemyCount = FindObjectsByType<Enemy>().Length;
-        if (enemyCount == 0) { SpawnEnemyWave(1); }
+        enemyCount = FindObjectsByType<Enemy>(FindObjectsSortMode.None).Length;
+
+        // when all enemies are destroyed, spawn next wave and powerups
+        if (enemyCount == 0) 
+        { 
+            SpawnRandomPowerup();
+            waveNumber ++; SpawnEnemyWave(waveNumber); 
+            
+            // spawn another powerup every third round
+            if (waveNumber % 3 == 0) { SpawnRandomPowerup(); }
+        }
+
+        if (playerControllerScript.hasBouncePowerup)
+        {
+            Instantiate(mushroom, GenerateSpawnPosition(), mushroom.transform.rotation);
+        }
     }
 
     private Vector3 GenerateSpawnPosition () 
@@ -30,7 +53,14 @@ public class SpawnManager : MonoBehaviour
     void SpawnEnemyWave(int enemiesToSpawn) {
         for (int i = 0; i < enemiesToSpawn; i++)
         {
-            Instantiate(enemyPrefab, GenerateSpawnPosition(), enemyPrefab.transform.rotation);
+            int enemyInt = Random.Range(0, enemyPrefab.Length);
+            Instantiate(enemyPrefab[enemyInt], GenerateSpawnPosition(), enemyPrefab[enemyInt].transform.rotation);
         }
+    }
+
+    void SpawnRandomPowerup()
+    {
+        int powerupInt = Random.Range(0,powerupPrefabs.Length);
+        Instantiate(powerupPrefabs[powerupInt], GenerateSpawnPosition(), powerupPrefabs[powerupInt].transform.rotation);
     }
 }
