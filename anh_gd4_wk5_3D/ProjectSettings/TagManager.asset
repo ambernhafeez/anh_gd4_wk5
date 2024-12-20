@@ -11,6 +11,8 @@ TagManager:
   - Powerup_Bounce
   - Indicator_Blast
   - Indicator_Bounce
+  - Powerup
+  - PlayerGOal
   layers:
   - Default
   - TransparentFX
